@@ -68,13 +68,12 @@ def get_bitmex_data(date, file_dir, endpoint='https://s3-eu-west-1.amazonaws.com
     if leanMode:
         #df = df[leanModeColumns]
         
-        assert 'size' in df.columns
-        assert (df['size'] >= 0).all()  # All sizes are unsigned
-        assert (df['size'].astype('uint32') - df['size']).abs().mean() == 0  # No information is lost
-    
-        df = df.astype({
-            'size': 'uint32',
-        })
+        assert 'size' in df.columns,  'No column \'size\' found!'
+        assert (df['size'] >= 0).all(), 'Found negative sizes!'  # All sizes are unsigned
+        if df['size'].max() < 2**32:
+            df = df.astype({
+                'size': 'uint32',
+            })
     
     else:
         df['date'] = pd.to_datetime(date)
@@ -91,7 +90,7 @@ def get_bitmex_data(date, file_dir, endpoint='https://s3-eu-west-1.amazonaws.com
         
     return df
 
-	
+
 def get_bitmex_data_period(date_start, date_end, file_dir, leanMode=False):
     '''
     Accesses the BITMEX data in a public AWS bucket* and returns one day.
